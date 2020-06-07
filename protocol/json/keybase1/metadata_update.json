@@ -1,0 +1,66 @@
+{
+  "protocol": "metadataUpdate",
+  "imports": [
+    {
+      "path": "backend_common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "RekeyRequest",
+      "fields": [
+        {
+          "type": "string",
+          "name": "folderID"
+        },
+        {
+          "type": "long",
+          "name": "revision"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "metadataUpdate": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "revision",
+          "type": "long"
+        }
+      ],
+      "response": null
+    },
+    "folderNeedsRekey": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "revision",
+          "type": "long"
+        }
+      ],
+      "response": null
+    },
+    "foldersNeedRekey": {
+      "request": [
+        {
+          "name": "requests",
+          "type": {
+            "type": "array",
+            "items": "RekeyRequest"
+          }
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

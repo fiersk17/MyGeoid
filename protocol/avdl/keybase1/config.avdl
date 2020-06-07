@@ -1,0 +1,169 @@
+
+@namespace("keybase.1")
+protocol config {
+
+  import idl "common.avdl";
+
+  record GetCurrentStatusRes {
+    boolean configured;
+    boolean registered;
+    boolean loggedIn;
+    boolean sessionIsValid;
+    union { null, User } user;
+  }
+
+  GetCurrentStatusRes getCurrentStatus(int sessionID);
+
+  record SessionStatus {
+    @lint("ignore")
+    string SessionFor;
+    @lint("ignore")
+    boolean Loaded;
+    @lint("ignore")
+    boolean Cleared;
+    @lint("ignore")
+    boolean SaltOnly;
+    @lint("ignore")
+    boolean Expired;
+  }
+
+  record ClientDetails {
+    int pid;
+    ClientType clientType;
+    array<string> argv;
+    string desc;
+    string version;
+  }
+
+  record PlatformInfo {
+    string os;
+    string osVersion;
+    string arch;
+    string goVersion;
+  }
+
+  record LoadDeviceErr {
+    string where;
+    string desc;
+  }
+
+  record ExtendedStatus {
+    boolean standalone;
+    boolean passphraseStreamCached;
+    boolean tsecCached;
+    boolean deviceSigKeyCached;
+    boolean deviceEncKeyCached;
+    boolean paperSigKeyCached;
+    boolean paperEncKeyCached;
+    boolean storedSecret;
+    boolean secretPromptSkip;
+    boolean rememberPassphrase;
+    union { null, Device } device;
+    union { null, LoadDeviceErr } deviceErr; /* if err getting device, this will describe it */
+    string logDir;
+    union { null, SessionStatus } session;
+    string defaultUsername;
+    array<string> provisionedUsernames;
+    @lint("ignore")
+    array<ClientDetails> Clients;
+    array<string> deviceEkNames;
+    PlatformInfo platformInfo;
+    DeviceID defaultDeviceID;               /* this contains the device ID for defaultUsername
+                                               in the config file. */
+  }
+
+  ExtendedStatus getExtendedStatus(int sessionID);
+
+
+  record AllProvisionedUsernames {
+    string defaultUsername;
+    array<string> provisionedUsernames;
+    boolean hasProvisionedUser;
+  }
+
+  AllProvisionedUsernames getAllProvisionedUsernames(int sessionID);
+
+  enum ForkType {
+    NONE_0,
+    AUTO_1,
+    WATCHDOG_2,
+    LAUNCHD_3,
+    SYSTEMD_4
+  }
+
+  record Config {
+    string serverURI;
+    string socketFile;
+    string label;
+    string runMode;
+    boolean gpgExists;
+    string gpgPath;
+    string version;
+    string path;
+    string binaryRealpath;
+    string configPath;
+    string versionShort;
+    string versionFull;
+    boolean isAutoForked;
+    ForkType forkType;
+  }
+
+  // A poor man's union, since we only currently support union { null, T }
+  record ConfigValue {
+    boolean isNull;
+    union { null, boolean } b;
+    union { null, int } i;
+    union { null, string } s;
+    union { null, string } o;
+  }
+
+  Config getConfig(int sessionID);
+
+  /**
+    Change user config.
+    For example, to update primary picture source:
+      key=picture.source, value=twitter (or github)
+    */
+  void setUserConfig(int sessionID, string username, string key, string value);
+
+  // setPath tells the service the client's PATH so that it can augment its own PATH if necessary.
+  void setPath(int sessionID, string path);
+
+  void helloIAm(ClientDetails details);
+
+  void setValue(string path, ConfigValue value);
+  void clearValue(string path);
+  ConfigValue getValue(string path);
+
+  record OutOfDateInfo {
+    string upgradeTo;
+    string upgradeURI;
+    string customMessage;
+    long criticalClockSkew;
+  }
+
+  /**
+    Check whether the API server has told us we're out of date.
+    */
+  OutOfDateInfo checkAPIServerOutOfDateWarning();
+
+  /**
+    Wait for client type to connect to service.
+    */
+  boolean waitForClient(ClientType clientType, DurationSec timeout);
+
+  record BootstrapStatus {
+    boolean registered;     // true if signed up at some point
+    boolean loggedIn;     // true if currently logged in
+    UID uid;        // current logged in user's UID
+    string username;      // current logged in user's username
+    DeviceID deviceID;      // current logged in user's device ID
+    string deviceName;      // current logged in user's device name
+    array<string> following;    // who current logged in user is following
+    array<string> followers;    // who follows current logged in user
+  }
+  BootstrapStatus getBootstrapStatus(int sessionID);
+
+  boolean getRememberPassphrase(int sessionID);
+  void setRememberPassphrase(int sessionID, boolean remember);
+}

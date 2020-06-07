@@ -1,0 +1,161 @@
+{
+  "protocol": "account",
+  "imports": [
+    {
+      "path": "passphrase_common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "HasServerKeysRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "hasServerKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LockdownHistory",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "status",
+          "jsonkey": "status"
+        },
+        {
+          "type": "Time",
+          "name": "creationTime",
+          "jsonkey": "ctime"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID",
+          "jsonkey": "device_id"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetLockdownResponse",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "LockdownHistory"
+          },
+          "name": "history"
+        },
+        {
+          "type": "boolean",
+          "name": "status"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "passphraseChange": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "oldPassphrase",
+          "type": "string"
+        },
+        {
+          "name": "passphrase",
+          "type": "string"
+        },
+        {
+          "name": "force",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "doc": "Change the passphrase from old to new. If old isn't set, and force is false,\n    then prompt at the UI for it. If old isn't set and force is true, then we'll\n    try to force a passphrase change."
+    },
+    "passphrasePrompt": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "guiArg",
+          "type": "GUIEntryArg"
+        }
+      ],
+      "response": "GetPassphraseRes"
+    },
+    "emailChange": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "newEmail",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "* change email to the new given email by signing a statement."
+    },
+    "hasServerKeys": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "HasServerKeysRes",
+      "doc": "* Whether the logged-in user has uploaded private keys\n   * Will error if not logged in."
+    },
+    "resetAccount": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "passphrase",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "resetAccount resets the user's account; it's meant only for devel and tests.\n   passphrase is optional and will be prompted for if not supplied."
+    },
+    "getLockdownMode": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "GetLockdownResponse"
+    },
+    "setLockdownMode": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "enabled",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

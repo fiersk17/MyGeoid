@@ -1,0 +1,35 @@
+@namespace("keybase.1")
+
+protocol ctl {
+
+  import idl "common.avdl";
+
+  enum ExitCode {
+    OK_0,
+    NOTOK_2,
+    RESTART_4
+  }
+
+  void stop(int sessionID, ExitCode exitCode);
+  void logRotate(int sessionID);
+  void reload(int sessionID);
+  void dbNuke(int sessionID);
+  void appExit(int sessionID);
+
+  enum DbType {
+    MAIN_0,
+    CHAT_1
+  }
+
+  record DbKey {
+    DbType dbType;
+    int objType;
+    string key;
+  }
+
+  @typedef("bytes") record DbValue {}
+
+  void dbDelete(int sessionID, DbKey key);
+  void dbPut(int sessionID, DbKey key, DbValue value);
+  union { null, DbValue } dbGet(int sessionID, DbKey key);
+}

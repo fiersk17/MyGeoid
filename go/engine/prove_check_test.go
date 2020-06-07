@@ -1,0 +1,85 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
+package engine
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+)
+
+func TestProveCheck(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testProveCheck(t, sigVersion)
+	})
+}
+
+func _testProveCheck(t *testing.T, sigVersion libkb.SigVersion) {
+	tc := SetupEngineTest(t, "prove check")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "prove")
+	sv := keybase1.SigVersion(sigVersion)
+	arg := keybase1.StartProofArg{
+		Service:      "rooter",
+		Username:     fu.Username,
+		Force:        false,
+		PromptPosted: true,
+		SigVersion:   &sv,
+	}
+
+	eng := NewProve(tc.G, &arg)
+
+	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
+		sigID := eng.sigID
+		if sigID.IsNil() {
+			return false, "", fmt.Errorf("empty sigID; can't make a post")
+		}
+		apiArg := libkb.APIArg{
+			Endpoint:    "rooter",
+			SessionType: libkb.APISessionTypeREQUIRED,
+			Args: libkb.HTTPArgs{
+				"post": libkb.S{Val: sigID.ToMediumID()},
+			},
+		}
+		_, err := tc.G.API.Post(apiArg)
+		return (err == nil), "", err
+	}
+
+	proveUI := &ProveUIMock{hook: hook}
+
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: fu.NewSecretUI(),
+		ProveUI:  proveUI,
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+
+	err := RunEngine2(m, eng)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	checkEng := NewProveCheck(tc.G, eng.sigID)
+	err = RunEngine2(m, checkEng)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	found, status, state, text := checkEng.Results()
+	if !found {
+		t.Errorf("proof not found, expected to be found")
+	}
+	if status != 1 {
+		t.Errorf("proof status: %d, expected 1", int(status))
+	}
+	if state != 1 {
+		t.Errorf("proof state: %d, expected 1", int(state))
+	}
+	if len(text) == 0 {
+		t.Errorf("empty proof text, expected non-empty")
+	}
+}

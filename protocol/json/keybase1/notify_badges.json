@@ -1,0 +1,141 @@
+{
+  "protocol": "NotifyBadges",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "ChatConversationID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "TeamMemberOutReset",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamname"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "gregor1.MsgID",
+          "name": "id"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BadgeState",
+      "fields": [
+        {
+          "type": "int",
+          "name": "newTlfs",
+          "lint": "ignore"
+        },
+        {
+          "type": "int",
+          "name": "rekeysNeeded"
+        },
+        {
+          "type": "int",
+          "name": "newFollowers"
+        },
+        {
+          "type": "int",
+          "name": "inboxVers"
+        },
+        {
+          "type": "int",
+          "name": "homeTodoItems"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "BadgeConversationInfo"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "newGitRepoGlobalUniqueIDs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "newTeamNames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "newTeamAccessRequests"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberOutReset"
+          },
+          "name": "teamsWithResetUsers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BadgeConversationInfo",
+      "fields": [
+        {
+          "type": "ChatConversationID",
+          "name": "convID"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "int",
+            "keys": "DeviceType"
+          },
+          "name": "badgeCounts"
+        },
+        {
+          "type": "int",
+          "name": "unreadMessages"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "badgeState": {
+      "request": [
+        {
+          "name": "badgeState",
+          "type": "BadgeState"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    }
+  },
+  "namespace": "keybase.1"
+}

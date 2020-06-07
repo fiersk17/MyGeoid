@@ -1,0 +1,12 @@
+// @flow
+export type FeatureFlags = {|
+  admin: boolean,
+  avatarUploadsEnabled: boolean,
+  explodingMessagesEnabled: boolean,
+  plansEnabled: boolean,
+  walletsEnabled: boolean,
+  fileWidgetEnabled?: boolean,
+|}
+
+declare var ff: FeatureFlags
+export default ff

@@ -1,0 +1,55 @@
+{
+  "protocol": "backendCommon",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "BlockType",
+      "symbols": [
+        "DATA_0",
+        "MD_1",
+        "GIT_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BlockIdCombo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "blockHash"
+        },
+        {
+          "type": "UserOrTeamID",
+          "name": "chargedTo"
+        },
+        {
+          "type": "BlockType",
+          "name": "blockType"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "ChallengeInfo",
+      "fields": [
+        {
+          "type": "long",
+          "name": "now"
+        },
+        {
+          "type": "string",
+          "name": "challenge"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

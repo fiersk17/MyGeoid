@@ -1,0 +1,270 @@
+{
+  "protocol": "block",
+  "imports": [
+    {
+      "path": "backend_common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "BlockStatus",
+      "symbols": [
+        "UNKNOWN_0",
+        "LIVE_1",
+        "ARCHIVED_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetBlockRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "blockKey"
+        },
+        {
+          "type": "bytes",
+          "name": "buf"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        },
+        {
+          "type": "BlockStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "fixed",
+      "name": "BlockRefNonce",
+      "size": "8"
+    },
+    {
+      "type": "record",
+      "name": "BlockReference",
+      "fields": [
+        {
+          "type": "BlockIdCombo",
+          "name": "bid"
+        },
+        {
+          "type": "BlockRefNonce",
+          "name": "nonce"
+        },
+        {
+          "type": "UserOrTeamID",
+          "name": "chargedTo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BlockReferenceCount",
+      "fields": [
+        {
+          "type": "BlockReference",
+          "name": "ref"
+        },
+        {
+          "type": "int",
+          "name": "liveCount"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DowngradeReferenceRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "BlockReferenceCount"
+          },
+          "name": "completed"
+        },
+        {
+          "type": "BlockReference",
+          "name": "failed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BlockPingResponse",
+      "fields": []
+    }
+  ],
+  "messages": {
+    "getSessionChallenge": {
+      "request": [],
+      "response": "ChallengeInfo"
+    },
+    "authenticateSession": {
+      "request": [
+        {
+          "name": "signature",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "putBlock": {
+      "request": [
+        {
+          "name": "bid",
+          "type": "BlockIdCombo"
+        },
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "blockKey",
+          "type": "string"
+        },
+        {
+          "name": "buf",
+          "type": "bytes"
+        }
+      ],
+      "response": null
+    },
+    "putBlockAgain": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "ref",
+          "type": "BlockReference"
+        },
+        {
+          "name": "blockKey",
+          "type": "string"
+        },
+        {
+          "name": "buf",
+          "type": "bytes"
+        }
+      ],
+      "response": null
+    },
+    "getBlock": {
+      "request": [
+        {
+          "name": "bid",
+          "type": "BlockIdCombo"
+        },
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "sizeOnly",
+          "type": "boolean"
+        }
+      ],
+      "response": "GetBlockRes"
+    },
+    "addReference": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "ref",
+          "type": "BlockReference"
+        }
+      ],
+      "response": null
+    },
+    "delReference": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "ref",
+          "type": "BlockReference"
+        }
+      ],
+      "response": null
+    },
+    "archiveReference": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "refs",
+          "type": {
+            "type": "array",
+            "items": "BlockReference"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "BlockReference"
+      }
+    },
+    "delReferenceWithCount": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "refs",
+          "type": {
+            "type": "array",
+            "items": "BlockReference"
+          }
+        }
+      ],
+      "response": "DowngradeReferenceRes"
+    },
+    "archiveReferenceWithCount": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "refs",
+          "type": {
+            "type": "array",
+            "items": "BlockReference"
+          }
+        }
+      ],
+      "response": "DowngradeReferenceRes"
+    },
+    "getUserQuotaInfo": {
+      "request": [],
+      "response": "bytes"
+    },
+    "getTeamQuotaInfo": {
+      "request": [
+        {
+          "name": "tid",
+          "type": "TeamID"
+        }
+      ],
+      "response": "bytes"
+    },
+    "blockPing": {
+      "request": [],
+      "response": "BlockPingResponse"
+    }
+  },
+  "namespace": "keybase.1"
+}

@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" Name="Keybase" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="c118f7ec-9a1d-4ff1-91f5-15d208499d7b">
+		<Package InstallerVersion="500" Compressed="yes" InstallPrivileges="limited" InstallScope="perUser" />
+    <MediaTemplate EmbedCab="yes"/>
+    <Icon Id="ProductIcon" SourceFile="$(env.GOPATH)\src\github.com\keybase\client\media\icons\Keybase.ico"/>
+    <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
+    <Property Id="ARPHELPLINK" Value="https://www.keybase.io"/>
+    <Property Id="ARPURLINFOABOUT" Value="https://www.keybase.io"/>
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
+    <Property Id="EXECUTABLETARGET" Value="bin"/>
+    <Property Id="MsiLogging" Value="oicewarmup"/>
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
+
+    <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="GuiComps" />
+      <ComponentRef Id="GUIShortCutComponent" />
+      <ComponentGroupRef Id="StartupShortcuts" />
+      <ComponentGroupRef Id="GuiStartMenuTileColors" />
+      <ComponentGroupRef Id="BrowserExtensionKbnm" />
+      <ComponentGroupRef Id="DokanInstallerComponents" />
+    </Feature>
+
+
+    <InstallExecuteSequence>
+      <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
+      <Custom Action="LogoutUser" Before="StopMainApp"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
+      <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+      <Custom Action="RemoveLegacyBundle" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="RemoveGUIStartupShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
+      <!-- StopGUI is legacy and to be removed after enough people are updated -->
+      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+      <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+      <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+    </InstallExecuteSequence>
+
+
+    <Property Id="Setup">Setup</Property>
+    <Property Id="ButtonText_No">&amp;No</Property>
+    <Property Id="ButtonText_Yes">&amp;Yes</Property>
+    <Property Id="ButtonText_Install">&amp;Install</Property>
+    <Property Id="ButtonText_Cancel">Cancel</Property>
+    <Property Id="BannerBitmap">bannrbmp</Property>
+    <Property Id="Wizard">Setup Wizard</Property>
+    <Property Id="InfoIcon">info</Property>
+
+    <Binary Id="info" SourceFile="Binary\Info.ico" />
+    <Binary Id="bannrbmp" SourceFile="Binary\Banner.bmp" />
+  </Product>
+  <Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="LocalAppDataFolder">
+        <Directory Id="INSTALLFOLDER" Name="Keybase">
+        </Directory>
+      </Directory>
+      <Directory Id="StartupFolder" Name="Startup" />
+      <Directory Id="SystemFolder" Name="System" />
+      <Directory Id="ProgramMenuFolder" Name="ProgramMenu" />
+    </Directory>
+  </Fragment>
+  
+	<Fragment>
+		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+			<Component Id="keybase.exe" Guid="88737432-0E15-413D-B23C-4B18D06EDC2C">				
+        <CreateFolder />
+        <RemoveFolder Id="RemoveMyApp" On="uninstall" />
+        <!-- The heat tool output (which generates gui.wxs) won't work if there are directories with only subdirectories
+        and no removable components, so we have to special-case them here and in the xsl transform (gui.xsl) -->
+        <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="keybase.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\keybase\keybase.exe" Checksum="yes"/>
+			</Component>
+      <Component Id="keybaserq.exe" Guid="{4A8A451F-973A-4E59-AC42-A8A9878FC94B}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveMyKeybaseRQ" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="keybaserqexe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="keybaserq.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe" Checksum="yes"/>
+      </Component>
+
+      <Component Id="KbfsDokanExe" Guid="{98A16FB9-D314-495A-806C-B75DCB74CF9D}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveDokan" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="KbfsDokanExe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id='KbfsDokanExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe" />
+      </Component>
+			
+      <Component Id="GitHelperExe" Guid="{d8938a5b-c45f-4942-b552-a357a5563329}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveGitHelper" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="GitHelperExe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id='GitHelperExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe" />
+        <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER]" Permanent="no" Part="last" Action="set" System="no" />
+      </Component>
+      
+      <Component Id="upd.exe" Guid="{65C18DA3-BCD5-4E18-9C80-AC66471B433A}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveUpdater" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="updaterexe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="upd.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\service\upd.exe" Checksum="yes"/>
+      </Component>
+      <Component Id="prompter.exe" Guid="{238016CC-6D9B-4B88-8618-EC1203F89CBF}">
+        <CreateFolder />
+        <RemoveFolder Id="RemovePrompterExe" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="prompterexe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="prompter.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe" Checksum="yes"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+  <Fragment>
+    <ComponentGroup Id="StartupShortcuts" Directory="StartupFolder">
+      <Component Id="AppShortCutStartUpComponent" Guid="{648c099c-748c-4e54-986a-ebd48e5cc0cb}">
+        <Shortcut Id="AppShortCutStartUp" Name="KeybaseStartup"
+                  Description="Start Keybase at boot"
+                  Target="[INSTALLFOLDER]keybaserq.exe"
+                  Arguments="keybase.exe --log-format=file --log-prefix=&quot;[INSTALLFOLDER]watchdog.&quot; ctl watchdog2"
+                  WorkingDirectory="INSTALLFOLDER"/>
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="ShortCutStartUp" Type="integer" Value="1" KeyPath="yes"  />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>    
+  </Fragment>
+  <Fragment>
+    <ComponentGroup Id="GuiStartMenuTileColors" Directory="GuiDir">
+      <Component Id="GUIShortcutVisualElementManifest" Guid="{CC9530CC-0A1B-4F92-829E-EBA66CA04FD8}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveGUIShortcutVisualElementManifest" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="GUIShortcutVisualElementManifest" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="GUIShortcutVisualElementManifest.xml" Source="$(env.GOPATH)\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseApps\Keybase.visualelementsmanifest.xml" Checksum="yes"/>
+      </Component>
+    </ComponentGroup>    
+  </Fragment>
+  
+  <Fragment>
+    <ComponentGroup Id="BrowserExtensionKbnm" Directory="INSTALLFOLDER">
+      
+      <Component Id="kbnm.exe" Guid="{FE0C96E0-FFC8-4256-A600-50FFFCF58349}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveMyBrowserExtensionExe" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="kbnmexe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="kbnm.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbnm\kbnm.exe" Checksum="yes"/>
+      </Component>
+
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="DokanInstallerComponents" Directory="INSTALLFOLDER">
+      <Component Id="dokaninstall.exe" Guid="{EA473E0D-2F53-4055-807F-EB70EAE3109E}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveDokanInstaller" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="DokanInstaller" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="DokanSetup_redist.exe" Source="Redist\dokan-dev\1.2.0.1000\DokanSetup_redist.exe" Checksum="yes"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <Component Id="GUIShortCutComponent" Guid="{95AB14DC-1529-423E-A20C-C0A8C63AF94E}" Directory="ProgramMenuFolder">
+      <Shortcut Id="GUIShortCut"
+                Name="Keybase"
+                Description="Start GUI"
+                Target="[GuiDir]Keybase.exe"
+                WorkingDirectory="GuiDir">
+        <!-- Windows needs this for notifications to show on certain versions
+           https://msdn.microsoft.com/en-us/library/windows/desktop/dd378459(v=vs.85).aspx
+           https://support.microsoft.com/en-us/help/2745126/warning-1946-message-when-you-install-a-windows-installer-package-in-w -->
+        <ShortcutProperty Key="{9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3}, 5" Value="Keybase.Keybase.GUI" />
+      </Shortcut>
+      <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"/>
+    </Component>
+  </Fragment>
+
+  <Fragment>
+    <CustomAction Id="RunMainApp"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe &quot;[INSTALLFOLDER]keybase.exe&quot; --log-format=file --log-prefix=&quot;[INSTALLFOLDER]watchdog.&quot; ctl watchdog2"
+              Execute="commit"
+              Return="ignore"/>    
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="StopMainApp"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; ctl stop"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="StopUpdater"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+
+  <Fragment>
+    <CustomAction Id="RunGUI"
+              Directory="GuiDir"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe &quot;[GuiDir]Keybase.exe&quot;"
+              Execute="commit"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="StopGUI"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM Keybase.exe"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="AddBrowserExtension"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]kbnm.exe&quot; install"
+              Execute="commit"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="RemoveBrowserExtension"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]kbnm.exe&quot; uninstall"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="RemoveGUIStartupShortcut"
+                  Script="vbscript">
+      <![CDATA[
+        const HKCU = &H80000001
+        strComputer = "."
+        Set oReg=GetObject("winmgmts:{impersonationLevel=impersonate}!\\" & strComputer & "\root\default:StdRegProv")
+        strKeyPath = "SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+        strValueName = "electron.app.Keybase"
+        oReg.DeleteValue HKCU,strKeyPath,strValueName
+      ]]>
+    </CustomAction>
+  </Fragment>
+  <Fragment>
+    <!-- Explicitly remove the last shipping bundle. People who haven't upgraded to it may see an additional "Keybase" under add/remove programs,
+    which is harmless. -->
+    <CustomAction Id="RemoveLegacyBundle"
+              Directory="LocalAppDataFolder"
+              ExeCommand="[LocalAppDataFolder]\Package Cache\{2db7fc7d-8c3f-43a3-bfd9-dfa625366b99}\Keybase_2.1.0-20180607152232+f31e011ea5.386.exe /quiet /uninstall"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="LogoutUser"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; logout"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+
+</Wix>

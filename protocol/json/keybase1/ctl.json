@@ -1,0 +1,150 @@
+{
+  "protocol": "ctl",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "ExitCode",
+      "symbols": [
+        "OK_0",
+        "NOTOK_2",
+        "RESTART_4"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "DbType",
+      "symbols": [
+        "MAIN_0",
+        "CHAT_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DbKey",
+      "fields": [
+        {
+          "type": "DbType",
+          "name": "dbType"
+        },
+        {
+          "type": "int",
+          "name": "objType"
+        },
+        {
+          "type": "string",
+          "name": "key"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DbValue",
+      "fields": [],
+      "typedef": "bytes"
+    }
+  ],
+  "messages": {
+    "stop": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "exitCode",
+          "type": "ExitCode"
+        }
+      ],
+      "response": null
+    },
+    "logRotate": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "reload": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "dbNuke": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "appExit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "dbDelete": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "key",
+          "type": "DbKey"
+        }
+      ],
+      "response": null
+    },
+    "dbPut": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "key",
+          "type": "DbKey"
+        },
+        {
+          "name": "value",
+          "type": "DbValue"
+        }
+      ],
+      "response": null
+    },
+    "dbGet": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "key",
+          "type": "DbKey"
+        }
+      ],
+      "response": [
+        null,
+        "DbValue"
+      ]
+    }
+  },
+  "namespace": "keybase.1"
+}

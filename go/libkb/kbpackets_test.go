@@ -1,0 +1,50 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
+package libkb
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestBadMsgpack(t *testing.T) {
+	info, err := DecodeArmoredNaclEncryptionInfoPacket(`
+g6Rib2R5hqhkZXRhY2hlw6loYXNoX3R5cGUKo2tlecQjASBz6XLVJ/u0KKVpvp9QlcNvIopFsusm
+wjFFHVUYo3ykIwqncGF5bG9hZMUD7XsiYm9keSI6eyJkZXZpY2UiOnsiaWQiOiIwNTc4NDNjMjAy
+NTE5MjZhY2MwZDVkYjMxMjY5NzkxOCIsImtpZCI6IjAxMjEzNzlkNTM3MGFlYjRlOWY3YWE0YjUy
+NzBmNWU0ODgwODVhNjQ3ZTBkYjI0NzdlZGQzZjNjNTBlM2QxNGY0MDRmMGEiLCJzdGF0dXMiOjF9
+LCJrZXkiOnsiZWxkZXN0X2tpZCI6IjAxMjBjN2E5NGM0NDI3NjA5NWU3MzY1ZjQ5YjY3YWU2OGY3
+YmNiYzgwNWM1ODI3OTdmNjkwYjY3YjA4ZjA1ZWRmZTFiMGEiLCJob3N0Ijoia2V5YmFzZS5pbyIs
+ImtpZCI6IjAxMjA3M2U5NzJkNTI3ZmJiNDI4YTU2OWJlOWY1MDk1YzM2ZjIyOGE0NWIyZWIyNmMy
+MzE0NTFkNTUxOGEzN2NhNDIzMGEiLCJ1aWQiOiJhMDkxNTUyMTA1MzJkOTYwODFjNGEzYTk5YzY0
+ODQxOSIsInVzZXJuYW1lIjoibHdwcF80MjJhYjc5ODQ3In0sInN1YmtleSI6eyJraWQiOiIwMTIx
+Mzc5ZDUzNzBhZWI0ZTlmN2FhNGI1MjcwZjVlNDg4MDg1YTY0N2UwZGIyNDc3ZWRkM2YzYzUwZTNk
+MTRmNDA0ZjBhIiwicGFyZW50X2tpZCI6IjAxMjA3M2U5NzJkNTI3ZmJiNDI4YTU2OWJlOWY1MDk1
+YzM2ZjIyOGE0NWIyZWIyNmMyMzE0NTFkNTUxOGEzN2NhNDIzMGEifSwidHlwZSI6InN1YmtleSIs
+InZlcnNpb24iOjF9LCJjbGllbnQiOnsibmFtZSI6ImtleWJhc2UuaW8gZ28gY2xpZW50IiwidmVy
+c2lvbiI6IjEuMC4wIn0sImN0aW1lIjoxNDQzNDY1OTQzLCJleHBpcmVfaW4iOjUwNDU3NjAwMCwi
+bWVya2xlX3Jvb3QiOnsiY3RpbWUiOjE0NDM0NjU5NDMsImhhc2giOiI4ZWIzM2IwNmMxZTAyMjFh
+Y2JhY2UzMDZkMjNlYTFkOTIyYmFhYWNjNmFiYmQyN2MzOWNmNjNiY2MyNjczNGVmNDg1MGNmODc2
+YWZlNjkxNTc4NDk4NDEzZTJlOTc0M2I3OWI5N2JlMTYxZWMwOGRiNGNmMjk2YmQ1ZTk4YjVmZSIs
+InNlcW5vIjo1NjN9LCJwcmV2IjoiZWUwMDc4NTgyNDZhZGY4ODU1OTc2NmYxNjRkMGIxOTUzMDMy
+MDljYmQ4MmFmYTdmYzZkZWQxOGI0OWI3YjZiMiIsInNlcW5vIjo0LCJ0YWciOiJzaWduYXR1cmUi
+faNzaWfEQG3uIt5g6X6NRAjnHdF1NSRO5UYJD1B0Ku1ixBIeS2zuSAGR0pts2Lbl+Cz3BGvu9isq
+7MHrgCa2r1PEo4C/4ACoc2lnX3R5cGUgo3RhZ80CAqd2ZXJzaW9uAQ==
+`)
+	require.Error(t, err, "Malformed msgpack should fail to decode, but decoded to: %#v", info)
+}
+
+// This is a regression test for
+// https://github.com/ugorji/go/issues/237 .
+func TestMsgpackReencodeNilHash(t *testing.T) {
+	// This message has a nil hash.
+	info, err := DecodeArmoredNaclEncryptionInfoPacket(`
+hKRib2R5hapjaXBoZXJ0ZXh0wKhlbmNfdHlwZQClbm9uY2XArHJlY2VpdmVyX2tlecCqc2VuZGVy
+X2tlecCkaGFzaIKkdHlwZQildmFsdWXEIJZSZH19AzYud7qy9x3yx1hN2MooqnhjsytUSqTK+VMZ
+o3RhZ80CA6d2ZXJzaW9uAQ==
+`)
+	// In particular, shouldn't return a FishyMsgpackError.
+	require.NoError(t, err, "info=%+v", info)
+}

@@ -1,0 +1,52 @@
+@namespace("keybase.1")
+
+protocol favorite {
+  import idl "common.avdl";
+
+  enum FolderType {
+    UNKNOWN_0,
+    PRIVATE_1,
+    PUBLIC_2,
+    TEAM_3
+  }
+
+
+  /**
+    Folder represents a favorite top-level folder in kbfs.
+    This type is likely to change significantly as all the various parts are
+    connected and tested.
+    */
+  record Folder {
+    string name;              // patrick,max or chris,maxtaco@twitter#strib
+    boolean private;          // (DEPRECATED) in /keybase/private or /keybase/public?
+    boolean notificationsOn;  // user wants to be notified when this folder changes
+    boolean created;          // this folder was just created by this user
+    FolderType folderType;    // what type of folder is this?
+  }
+
+  // Each of your TLFs is in one of 3 states with respect to favoriting. Either
+  // you've favorited it, or you've ignored it, or you haven't done either of
+  // those things yet ("new"). The favorite/list endpoint returns 3 lists,
+  // representing all the TLFs you have in each of those 3 states, and we
+  // marshall that result into this struct.
+  record FavoritesResult {
+    array<Folder> favoriteFolders;
+    array<Folder> ignoredFolders;
+    array<Folder> newFolders;
+  }
+
+  /**
+    Adds a folder to a user's list of favorite folders.
+    */
+  void favoriteAdd(int sessionID, Folder folder);
+
+  /**
+    Removes a folder from a user's list of favorite folders.
+    */
+  void favoriteIgnore(int sessionID, Folder folder);
+
+  /**
+    Returns all of a user's favorite folders.
+    */
+  FavoritesResult getFavorites(int sessionID);
+}

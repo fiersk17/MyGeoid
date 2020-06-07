@@ -1,0 +1,161 @@
+{
+  "protocol": "tlfKeys",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "identify.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "TLFIdentifyBehavior",
+      "symbols": [
+        "UNSET_0",
+        "CHAT_CLI_1",
+        "CHAT_GUI_2",
+        "CHAT_GUI_STRICT_3",
+        "KBFS_REKEY_4",
+        "KBFS_QR_5",
+        "CHAT_SKIP_6",
+        "SALTPACK_7",
+        "CLI_8",
+        "GUI_9",
+        "DEFAULT_KBFS_10",
+        "KBFS_CHAT_11",
+        "RESOLVE_AND_CHECK_12"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CanonicalTlfName",
+      "fields": [],
+      "typedef": "string",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "CryptKey",
+      "fields": [
+        {
+          "type": "int",
+          "name": "KeyGeneration",
+          "lint": "ignore"
+        },
+        {
+          "type": "Bytes32",
+          "name": "Key",
+          "lint": "ignore"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TLFBreak",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "TLFIdentifyFailure"
+          },
+          "name": "breaks"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TLFIdentifyFailure",
+      "fields": [
+        {
+          "type": "User",
+          "name": "user"
+        },
+        {
+          "type": [
+            null,
+            "IdentifyTrackBreaks"
+          ],
+          "name": "breaks"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CanonicalTLFNameAndIDWithBreaks",
+      "fields": [
+        {
+          "type": "TLFID",
+          "name": "tlfID"
+        },
+        {
+          "type": "CanonicalTlfName",
+          "name": "CanonicalName",
+          "lint": "ignore"
+        },
+        {
+          "type": "TLFBreak",
+          "name": "breaks"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetTLFCryptKeysRes",
+      "fields": [
+        {
+          "type": "CanonicalTLFNameAndIDWithBreaks",
+          "name": "nameIDBreaks"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "CryptKey"
+          },
+          "name": "CryptKeys",
+          "lint": "ignore"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TLFQuery",
+      "fields": [
+        {
+          "type": "string",
+          "name": "tlfName"
+        },
+        {
+          "type": "TLFIdentifyBehavior",
+          "name": "identifyBehavior"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "getTLFCryptKeys": {
+      "request": [
+        {
+          "name": "query",
+          "type": "TLFQuery"
+        }
+      ],
+      "response": "GetTLFCryptKeysRes",
+      "doc": "getTLFCryptKeys returns TLF crypt keys from all generations and the TLF ID.\n   TLF ID should not be cached or stored persistently."
+    },
+    "getPublicCanonicalTLFNameAndID": {
+      "request": [
+        {
+          "name": "query",
+          "type": "TLFQuery"
+        }
+      ],
+      "response": "CanonicalTLFNameAndIDWithBreaks",
+      "doc": "getPublicCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.\n   TLF ID should not be cached or stored persistently."
+    }
+  },
+  "namespace": "keybase.1"
+}

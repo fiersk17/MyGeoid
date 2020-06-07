@@ -1,0 +1,44 @@
+{
+  "protocol": "tlf",
+  "imports": [
+    {
+      "path": "tlf_keys.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "CryptKeys": {
+      "request": [
+        {
+          "name": "query",
+          "type": "TLFQuery"
+        }
+      ],
+      "response": "GetTLFCryptKeysRes",
+      "doc": "CryptKeys returns TLF crypt keys from all generations.",
+      "lint": "ignore"
+    },
+    "publicCanonicalTLFNameAndID": {
+      "request": [
+        {
+          "name": "query",
+          "type": "TLFQuery"
+        }
+      ],
+      "response": "CanonicalTLFNameAndIDWithBreaks",
+      "doc": "* tlfCanonicalID returns the canonical name and TLFID for tlfName.\n   * TLFID should not be cached or stored persistently."
+    },
+    "completeAndCanonicalizePrivateTlfName": {
+      "request": [
+        {
+          "name": "query",
+          "type": "TLFQuery"
+        }
+      ],
+      "response": "CanonicalTLFNameAndIDWithBreaks",
+      "lint": "ignore"
+    }
+  },
+  "namespace": "keybase.1"
+}
