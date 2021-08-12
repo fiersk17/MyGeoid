@@ -151,7 +151,7 @@
     "mkdirp": "0.5.1",
     "moment": "2.22.2",
     "mousetrap": "1.6.2",
-    "path-parse": "1.0.6",
+    "path-parse": "1.0.7",
     "prettier": "1.12.1",
     "prop-types": "15.6.2",
     "purepack": "1.0.4",
